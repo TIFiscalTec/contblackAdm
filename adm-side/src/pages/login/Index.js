@@ -69,7 +69,7 @@ function Login() {
         <div style={{ width: '100vw', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <div style={{ width: 400, padding: 20, boxShadow: '0 0 10px rgba(0,0,0,0.1)', borderRadius: 5 }}>
                 <div style={{ width: '100%', marginBottom: 20, textAlign: 'center' }}>
-                    <h1>Login | Clarea ADM</h1>
+                    <h1>Login | Contblack ADM</h1>
                 </div>
                 <div style={{ width: '100%', paddingTop: "10px" }}>
                     <TextField label="E-mail" variant="outlined" fullWidth size='small' onChange={(e) => setEmail(e.target.value)} />
