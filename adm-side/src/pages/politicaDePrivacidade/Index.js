@@ -5,33 +5,30 @@ import Typography from '@mui/material/Typography';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
 import Link from '@mui/material/Link';
 import { useNavigate } from "react-router-dom";
-import { formatToBrl } from "../../utils/FormatToBrl";
-import EditarPlano from "./components/EditarPlano";
+import { FormatDate } from "../../utils/FormatDate";
+import AdicionarPolitica from "./components/AdicionarPolitica";
 
-function Planos() {
+function PoliticaDePrivacidade() {
 
     const token = localStorage.getItem('token');
     const navigate = useNavigate();
-    const [planos, setPlanos] = useState([]);
-    const [editarPlano, setEditarPlano] = useState(false);
-    const [idPlano, setIdPlano] = useState(null);
+
+    const [politicas, setPoliticas] = useState([]);
+    const [adicionarPolitica, setAdicionarPolitica] = useState(false);
 
     useEffect(() => {
-        const getPlanos = async () => {
-            const response = await axios.get(`${process.env.REACT_APP_API_URL}/listarPlanos`)
-            setPlanos(response.data.planos);
+        const getPoliticas = async () => {
+            const response = await axios.get(`${process.env.REACT_APP_API_URL}/listarPoliticas`, {
+                headers: {
+                    Authorization: token
+                }
+            })
+            setPoliticas(response.data.politicas);
             console.log(response)
         }
 
-        getPlanos();
-    }, [token, navigate, editarPlano])
-
-    const handleAdicionarPlano = async () => {
-        if (planos.length >= 4) {
-            alert("Limite de 4 planos atingido.");
-            return;
-        }
-    }
+        getPoliticas();
+    }, [token, navigate, adicionarPolitica])
 
     return (
         <div>
@@ -43,14 +40,14 @@ function Planos() {
                             <Link underline="hover" color="inherit" href="/Dashboard">
                                 Dashboard
                             </Link>
-                            <Typography sx={{ color: 'text.primary' }}>Planos</Typography>
+                            <Typography sx={{ color: 'text.primary' }}>Políticas de Privacidade</Typography>
                         </Breadcrumbs>
                     </div>
                     <div>
-                        <h2>Planos</h2>
+                        <h2>Políticas de Privacidade</h2>
                     </div>
                     <div>
-                        <h3>Lista de Planos</h3>
+                        <h3>Lista de Políticas de Privacidade</h3>
                     </div>
                     <div style={{ width: "100%", display: "flex", justifyContent: "flex-end" }}>
                         <button
@@ -67,9 +64,9 @@ function Planos() {
                             }}
                             onMouseEnter={(e) => (e.target.style.background = "#025e02ff")}
                             onMouseLeave={(e) => (e.target.style.background = "#008000")}
-                            onClick={handleAdicionarPlano}
+                            onClick={() => setAdicionarPolitica(true)}
                         >
-                            Adicionar Plano
+                            Adicionar Políticas de Privacidade
                         </button>
                     </div>
                     <div style={{ width: "100%", overflowX: "auto", marginTop: "20px" }}>
@@ -85,7 +82,7 @@ function Planos() {
                         >
                             <thead style={{ background: "#0b243d", color: "#fff" }}>
                                 <tr>
-                                    {["ID", "Nome", "Descrição", "Valor antigo mensal", "Valor novo mensal", "Desconto mensal", "qtdNfseMensalUsuario", "qtdNfseMensalClarea", "Ações"].map((header) => (
+                                    {["ID", "Versão", "Criado em"].map((header) => (
                                         <th
                                             key={header}
                                             style={{
@@ -102,9 +99,9 @@ function Planos() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {planos.map((plano, i) => (
+                                {politicas.length > 0 ? politicas.map((politica, i) => (
                                     <tr
-                                        key={plano?.idPlano}
+                                        key={politica?.idPolitica}
                                         style={{
                                             background: i % 2 === 0 ? "#f9f9f9" : "#fff",
                                             transition: "all 0.2s ease-in-out",
@@ -114,16 +111,11 @@ function Planos() {
                                             (e.currentTarget.style.background = i % 2 === 0 ? "#f9f9f9" : "#fff")
                                         }
                                     >
-                                        <td style={{ padding: "14px 18px", fontSize: "14px" }}>{plano?.idPlano}</td>
-                                        <td style={{ padding: "14px 18px", fontSize: "14px", fontWeight: 500 }}>{plano?.nome}</td>
-                                        <td style={{ padding: "14px 18px", fontSize: "14px", fontWeight: 500 }}>{plano?.descricao}</td>
-                                        <td style={{ padding: "14px 18px", fontSize: "14px" }}>{formatToBrl(plano?.valorAntigoMensal)}</td>
-                                        <td style={{ padding: "14px 18px", fontSize: "14px" }}>{formatToBrl(plano?.valorNovoMensal)}</td>
-                                        <td style={{ padding: "14px 18px", fontSize: "14px" }}>{parseInt(plano?.descontoMensal)}%</td>
-                                        <td style={{ padding: "14px 18px", fontSize: "14px", fontWeight: 500 }}>{plano?.qtdNfseMensalUsuario}</td>
-                                        <td style={{ padding: "14px 18px", fontSize: "14px", fontWeight: 500 }}>{plano?.qtdNfseMensalClarea}</td>
-
-                                        <td style={{ padding: "14px 18px", fontSize: "14px", display: "flex", gap: "8px" }}>
+                                        <td style={{ padding: "14px 18px", fontSize: "14px" }}>{politica?.idPolitica}</td>
+                                        <td style={{ padding: "14px 18px", fontSize: "14px", fontWeight: 500 }}>{politica?.Versao}</td>
+                                        {/* <td style={{ padding: "14px 18px", fontSize: "14px" }}>{politica?.Conteudo}</td> */}
+                                        <td style={{ padding: "14px 18px", fontSize: "14px" }}>{FormatDate(politica?.DataCriacao)}</td>
+                                        {/* <td style={{ padding: "14px 18px", fontSize: "14px", display: "flex", gap: "8px" }}>
                                             <button
                                                 style={{
                                                     border: "none",
@@ -139,23 +131,29 @@ function Planos() {
                                                 onMouseEnter={(e) => (e.target.style.background = "#e6b73f")}
                                                 onMouseLeave={(e) => (e.target.style.background = "#ffc845")}
                                                 onClick={() => {
-                                                    setIdPlano(plano?.idPlano);
-                                                    setEditarPlano(true);
+                                                    setIdTermo(termo?.idTermo);
+                                                    setEditarTermos(true);
                                                 }}
                                             >
                                                 Editar
                                             </button>
+                                        </td> */}
+                                    </tr>
+                                )) : (
+                                    <tr>
+                                        <td colSpan={4} style={{ textAlign: "center", padding: "14px 18px", fontSize: "14px" }}>
+                                            Nenhuma política de privacidade encontrada.
                                         </td>
                                     </tr>
-                                ))}
+                                )}
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
-            <EditarPlano editarPlano={editarPlano} setEditarPlano={setEditarPlano} idPlano={idPlano} />
+            <AdicionarPolitica adicionarPolitica={adicionarPolitica} setAdicionarPolitica={setAdicionarPolitica} />
         </div>
     );
 }
 
-export default Planos;
+export default PoliticaDePrivacidade;

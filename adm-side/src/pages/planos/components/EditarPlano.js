@@ -17,6 +17,8 @@ export default function EditarPlano(props) {
     const [valorAntigo, setValorAntigo] = useState('');
     const [valorNovo, setValorNovo] = useState('');
     const [descricao, setDescricao] = useState('');
+    const [qtdNfseMensalUsuario, setQtdNfseMensalUsuario] = useState('');
+    const [qtdNfseMensalClarea, setQtdNfseMensalClarea] = useState('');
 
     useEffect(() => {
         const getPlanoById = async () => {
@@ -28,9 +30,11 @@ export default function EditarPlano(props) {
 
             console.log(response)
             setNomePlano(response?.data?.plano?.nome);
-            setValorAntigo(response?.data?.plano?.valorAntigoMensal);
-            setValorNovo(response?.data?.plano?.valorNovoMensal);
+            setValorAntigo(response?.data?.plano?.valorAntigoMensal.replace(".", ","));
+            setValorNovo(response?.data?.plano?.valorNovoMensal.replace(".", ","));
             setDescricao(response?.data?.plano?.descricao);
+            setQtdNfseMensalUsuario(response?.data?.plano?.qtdNfseMensalUsuario);
+            setQtdNfseMensalClarea(response?.data?.plano?.qtdNfseMensalClarea);
         }
         getPlanoById();
     }, [props.idPlano, token]);
@@ -49,11 +53,13 @@ export default function EditarPlano(props) {
 
         try {
             await axios.put(`${process.env.REACT_APP_API_URL}/atualizarPlano/${props.idPlano}`, {
-                nomePlano,
-                vlAntigo,
-                vlNovo,
+                nome: nomePlano,
+                valorAntigoMensal: vlAntigo,
+                valorNovoMensal: vlNovo,
                 percentual,
-                descricao
+                descricao,
+                qtdNfseMensalUsuario,
+                qtdNfseMensalClarea
             }, {
                 headers: {
                     Authorization: token
@@ -61,7 +67,7 @@ export default function EditarPlano(props) {
             });
             handleClose();
         } catch (error) {
-            console.error("Erro ao atualizar desconto:", error);
+            console.error("Erro ao atualizar plano:", error);
         }
     };
 
@@ -120,6 +126,30 @@ export default function EditarPlano(props) {
                         fullWidth
                         value={valorNovo || ''}
                         onChange={(e) => setValorNovo(e.target.value)}
+                        variant="outlined"
+                        size='small'
+                    />
+                    <TextField
+                        required
+                        margin="dense"
+                        label="Quantidade NFSe Mensal Usuário"
+                        placeholder='Insira o valor novo'
+                        type="text"
+                        fullWidth
+                        value={qtdNfseMensalUsuario || ''}
+                        onChange={(e) => setQtdNfseMensalUsuario(e.target.value)}
+                        variant="outlined"
+                        size='small'
+                    />
+                    <TextField
+                        required
+                        margin="dense"
+                        label="Quantidade NFSe Mensal Clarea"
+                        placeholder='Insira o valor novo'
+                        type="text"
+                        fullWidth
+                        value={qtdNfseMensalClarea || ''}
+                        onChange={(e) => setQtdNfseMensalClarea(e.target.value)}
                         variant="outlined"
                         size='small'
                     />

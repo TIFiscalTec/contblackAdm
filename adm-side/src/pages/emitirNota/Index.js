@@ -5,33 +5,66 @@ import Typography from '@mui/material/Typography';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
 import Link from '@mui/material/Link';
 import { useNavigate } from "react-router-dom";
-import { formatToBrl } from "../../utils/FormatToBrl";
-import EditarPlano from "./components/EditarPlano";
+import { MascaraCpf } from "../../utils/MascaraCpf";
+import { MascaraTelefone } from "../../utils/MascaraTelefone";
+import { MascaraCnpj } from "../../utils/MascaraCnpj";
+import TextField from '@mui/material/TextField';
+import Box from '@mui/material/Box';
+import ManageSearchIcon from '@mui/icons-material/ManageSearch';
 
-function Planos() {
+function EmitirNota() {
 
     const token = localStorage.getItem('token');
     const navigate = useNavigate();
-    const [planos, setPlanos] = useState([]);
-    const [editarPlano, setEditarPlano] = useState(false);
-    const [idPlano, setIdPlano] = useState(null);
+    const [usuarios, setUsuarios] = useState([]);
+    const [usuarioSearch, setUsuarioSearch] = useState([]);
 
     useEffect(() => {
-        const getPlanos = async () => {
-            const response = await axios.get(`${process.env.REACT_APP_API_URL}/listarPlanos`)
-            setPlanos(response.data.planos);
+        const getUsuarios = async () => {
+            const response = await axios.get(`${process.env.REACT_APP_API_URL}/listarUsuariosEmitirNota`, {
+                headers: {
+                    Authorization: token
+                }
+            })
+            setUsuarios(response.data.usuarios);
+            setUsuarioSearch(response.data.usuarios);
             console.log(response)
         }
 
-        getPlanos();
-    }, [token, navigate, editarPlano])
+        getUsuarios();
+    }, [token, navigate,])
 
-    const handleAdicionarPlano = async () => {
-        if (planos.length >= 4) {
-            alert("Limite de 4 planos atingido.");
+    const handleSearchUser = (event) => {
+        const query = event.target.value.trim().toLowerCase();
+
+        if (!query) {
+            setUsuarioSearch(usuarios);
             return;
         }
-    }
+
+        const normalize = (text) =>
+            String(text || "")
+                .toLowerCase()
+                .normalize("NFD") // remove acentos
+                .replace(/[\u0300-\u036f]/g, "");
+
+        const filteredUsers = usuarios.filter((usuario) => {
+            const campos = [
+                usuario?.Nome,
+                usuario?.Email,
+                usuario?.Cpf,
+                usuario?.Cnpj,
+                usuario?.RazaoSocial,
+                usuario?.Telefone,
+            ];
+
+            return campos.some((campo) => normalize(campo).includes(normalize(query)));
+        });
+
+        setUsuarioSearch(filteredUsers);
+    };
+
+
 
     return (
         <div>
@@ -43,34 +76,20 @@ function Planos() {
                             <Link underline="hover" color="inherit" href="/Dashboard">
                                 Dashboard
                             </Link>
-                            <Typography sx={{ color: 'text.primary' }}>Planos</Typography>
+                            <Typography sx={{ color: 'text.primary' }}>Emitir Nota</Typography>
                         </Breadcrumbs>
                     </div>
                     <div>
-                        <h2>Planos</h2>
+                        <h2>Emitir Nota</h2>
                     </div>
                     <div>
-                        <h3>Lista de Planos</h3>
+                        <h3>Lista de Usuarios</h3>
                     </div>
-                    <div style={{ width: "100%", display: "flex", justifyContent: "flex-end" }}>
-                        <button
-                            style={{
-                                border: "none",
-                                padding: "8px 14px",
-                                borderRadius: "6px",
-                                cursor: "pointer",
-                                fontSize: "13px",
-                                fontWeight: 500,
-                                background: "#008000",
-                                color: "#fff",
-                                transition: "background 0.2s",
-                            }}
-                            onMouseEnter={(e) => (e.target.style.background = "#025e02ff")}
-                            onMouseLeave={(e) => (e.target.style.background = "#008000")}
-                            onClick={handleAdicionarPlano}
-                        >
-                            Adicionar Plano
-                        </button>
+                    <div style={{ width: "100%", display: "flex", justifyContent: "center" }}>
+                        <Box sx={{ display: 'flex', alignItems: 'flex-end', width: "50%", marginTop: "20px" }}>
+                            <ManageSearchIcon sx={{ color: 'action.active', mr: 1, my: 0.5 }} />
+                            <TextField label="Para qual usuário você vai emitir a nota?" variant="standard" size="large" sx={{ width: "100%" }} onChange={(event) => handleSearchUser(event)} />
+                        </Box>
                     </div>
                     <div style={{ width: "100%", overflowX: "auto", marginTop: "20px" }}>
                         <table
@@ -85,7 +104,7 @@ function Planos() {
                         >
                             <thead style={{ background: "#0b243d", color: "#fff" }}>
                                 <tr>
-                                    {["ID", "Nome", "Descrição", "Valor antigo mensal", "Valor novo mensal", "Desconto mensal", "qtdNfseMensalUsuario", "qtdNfseMensalClarea", "Ações"].map((header) => (
+                                    {["ID", "Nome", "E-mail", "CPF", "CNPJ", "Razão Social", "Telefone", "Ação"].map((header) => (
                                         <th
                                             key={header}
                                             style={{
@@ -102,9 +121,9 @@ function Planos() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {planos.map((plano, i) => (
+                                {usuarioSearch.map((usuario, i) => (
                                     <tr
-                                        key={plano?.idPlano}
+                                        key={usuario?.idUsuario}
                                         style={{
                                             background: i % 2 === 0 ? "#f9f9f9" : "#fff",
                                             transition: "all 0.2s ease-in-out",
@@ -114,15 +133,13 @@ function Planos() {
                                             (e.currentTarget.style.background = i % 2 === 0 ? "#f9f9f9" : "#fff")
                                         }
                                     >
-                                        <td style={{ padding: "14px 18px", fontSize: "14px" }}>{plano?.idPlano}</td>
-                                        <td style={{ padding: "14px 18px", fontSize: "14px", fontWeight: 500 }}>{plano?.nome}</td>
-                                        <td style={{ padding: "14px 18px", fontSize: "14px", fontWeight: 500 }}>{plano?.descricao}</td>
-                                        <td style={{ padding: "14px 18px", fontSize: "14px" }}>{formatToBrl(plano?.valorAntigoMensal)}</td>
-                                        <td style={{ padding: "14px 18px", fontSize: "14px" }}>{formatToBrl(plano?.valorNovoMensal)}</td>
-                                        <td style={{ padding: "14px 18px", fontSize: "14px" }}>{parseInt(plano?.descontoMensal)}%</td>
-                                        <td style={{ padding: "14px 18px", fontSize: "14px", fontWeight: 500 }}>{plano?.qtdNfseMensalUsuario}</td>
-                                        <td style={{ padding: "14px 18px", fontSize: "14px", fontWeight: 500 }}>{plano?.qtdNfseMensalClarea}</td>
-
+                                        <td style={{ padding: "14px 18px", fontSize: "14px" }}>{usuario?.idUsuario}</td>
+                                        <td style={{ padding: "14px 18px", fontSize: "14px", fontWeight: 500 }}>{usuario?.Nome}</td>
+                                        <td style={{ padding: "14px 18px", fontSize: "14px", fontWeight: 500 }}>{usuario?.Email}</td>
+                                        <td style={{ padding: "14px 18px", fontSize: "14px" }}>{MascaraCpf(usuario?.Cpf)}</td>
+                                        <td style={{ padding: "14px 18px", fontSize: "14px" }}>{MascaraCnpj(usuario?.Cnpj) || "---"}</td>
+                                        <td style={{ padding: "14px 18px", fontSize: "14px" }}>{usuario?.RazaoSocial || "---"}</td>
+                                        <td style={{ padding: "14px 18px", fontSize: "14px" }}>{MascaraTelefone(usuario?.Telefone)}</td>
                                         <td style={{ padding: "14px 18px", fontSize: "14px", display: "flex", gap: "8px" }}>
                                             <button
                                                 style={{
@@ -132,18 +149,15 @@ function Planos() {
                                                     cursor: "pointer",
                                                     fontSize: "13px",
                                                     fontWeight: 500,
-                                                    background: "#ffc845",
-                                                    color: "#0b243d",
+                                                    background: "green",
+                                                    color: "white",
                                                     transition: "background 0.2s",
                                                 }}
-                                                onMouseEnter={(e) => (e.target.style.background = "#e6b73f")}
-                                                onMouseLeave={(e) => (e.target.style.background = "#ffc845")}
-                                                onClick={() => {
-                                                    setIdPlano(plano?.idPlano);
-                                                    setEditarPlano(true);
-                                                }}
+                                                onMouseEnter={(e) => (e.target.style.background = "green")}
+                                                onMouseLeave={(e) => (e.target.style.background = "darkgreen")}
+                                                onClick={() => navigate(`/EmitirNota/Perfil/${usuario?.idUsuario}`)}
                                             >
-                                                Editar
+                                                Acessar Perfil
                                             </button>
                                         </td>
                                     </tr>
@@ -153,9 +167,8 @@ function Planos() {
                     </div>
                 </div>
             </div>
-            <EditarPlano editarPlano={editarPlano} setEditarPlano={setEditarPlano} idPlano={idPlano} />
         </div>
     );
 }
 
-export default Planos;
+export default EmitirNota;

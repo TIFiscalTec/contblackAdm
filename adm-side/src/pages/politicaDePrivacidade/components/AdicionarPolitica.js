@@ -9,7 +9,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import JoditEditor from 'jodit-react';
 import axios from 'axios';
 
-export default function AdicionarTermos(props) {
+export default function AdicionarPolitica(props) {
     const token = localStorage.getItem('token');
 
     const editor = useRef(null);
@@ -19,7 +19,7 @@ export default function AdicionarTermos(props) {
         width: '100%',
         height: '80vh',
         readonly: false,
-        placeholder: 'Digite os termos de uso aqui...',
+        placeholder: 'Digite a política de privacidade aqui...',
         toolbarButtonSize: 'middle',
         toolbar: [
             'bold',
@@ -38,14 +38,14 @@ export default function AdicionarTermos(props) {
 
     const handleClose = () => {
         setContent('');
-        props.setAdicionarTermos(false);
+        props.setAdicionarPolitica(false);
     };
 
     const handleSubmit = async (event) => {
         console.log("Conteúdo do editor:", content);
         event.preventDefault();
         try {
-            await axios.post(`${process.env.REACT_APP_API_URL}/adicionarTermo`, {
+            await axios.post(`${process.env.REACT_APP_API_URL}/adicionarPolitica`, {
                 content
             }, {
                 headers: {
@@ -61,11 +61,11 @@ export default function AdicionarTermos(props) {
 
     return (
         <React.Fragment>
-            <Dialog open={props.adicionarTermos} onClose={handleClose} fullScreen>
-                <DialogTitle>Adicionar Termos De Uso</DialogTitle>
+            <Dialog open={props.adicionarPolitica} onClose={handleClose} fullScreen>
+                <DialogTitle>Adicionar Política de Privacidade</DialogTitle>
                 <DialogContent>
                     <DialogContentText sx={{ marginBottom: 2 }}>
-                        Para adicionar um novo termo, por favor insira as informações abaixo.
+                        Para adicionar uma nova política de privacidade, por favor insira as informações abaixo.
                     </DialogContentText>
                     <JoditEditor
                         ref={editor}

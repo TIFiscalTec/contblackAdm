@@ -19,7 +19,9 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import StyleIcon from '@mui/icons-material/Style';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import PolicyIcon from '@mui/icons-material/Policy';
+import ReceiptIcon from '@mui/icons-material/Receipt';
 import { useNavigate } from 'react-router-dom';
+import LeaderboardIcon from '@mui/icons-material/Leaderboard';
 import axios from 'axios';
 
 function Header() {
@@ -52,6 +54,14 @@ function Header() {
     const DrawerList = (
         <Box sx={{ width: 250 }} role="presentation" onClick={toggleDrawer(false)}>
             <List>
+                <ListItem disablePadding>
+                    <ListItemButton onClick={() => navigate("../EmitirNota")}>
+                        <ListItemIcon>
+                            <ReceiptIcon sx={{ color: "red" }} />
+                        </ListItemIcon>
+                        <ListItemText primary={"Emitir Nota Fiscal"} />
+                    </ListItemButton>
+                </ListItem>
                 <ListItem disablePadding>
                     <ListItemButton onClick={() => navigate("../Assinaturas")}>
                         <ListItemIcon>
@@ -100,6 +110,22 @@ function Header() {
                         <ListItemText primary={"Termos de uso"} />
                     </ListItemButton>
                 </ListItem>
+                <ListItem disablePadding>
+                    <ListItemButton onClick={() => navigate("../PoliticaDePrivacidade")}>
+                        <ListItemIcon>
+                            <PolicyIcon sx={{ color: "blue" }} />
+                        </ListItemIcon>
+                        <ListItemText primary={"Políticas de Privacidade"} />
+                    </ListItemButton>
+                </ListItem>
+                <ListItem disablePadding>
+                    <ListItemButton onClick={() => navigate("../LeadsLandingPage")}>
+                        <ListItemIcon>
+                            <LeaderboardIcon sx={{ color: "#1eff74ff" }} />
+                        </ListItemIcon>
+                        <ListItemText primary={"Leads landing page"} />
+                    </ListItemButton>
+                </ListItem>
             </List>
             <Divider />
             <List>
@@ -122,7 +148,7 @@ function Header() {
     return (
         <>
             <Box sx={{ flexGrow: 1 }}>
-                <AppBar position="static" sx={{ backgroundColor: "#233344" }}>
+                <AppBar position="static" sx={{ backgroundColor: "#0b243d" }}>
                     <Toolbar>
                         <IconButton
                             size="large"

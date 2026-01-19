@@ -85,7 +85,7 @@ function TermosDeUso() {
                         >
                             <thead style={{ background: "#0b243d", color: "#fff" }}>
                                 <tr>
-                                    {["ID", "Versão", "Descrição", "Criado em", "Ações"].map((header) => (
+                                    {["ID", "Versão", "Descrição", "Criado em"].map((header) => (
                                         <th
                                             key={header}
                                             style={{
@@ -118,7 +118,7 @@ function TermosDeUso() {
                                         <td style={{ padding: "14px 18px", fontSize: "14px", fontWeight: 500 }}>{termo?.Versao}</td>
                                         <td style={{ padding: "14px 18px", fontSize: "14px" }}>{termo?.Conteudo}</td>
                                         <td style={{ padding: "14px 18px", fontSize: "14px" }}>{FormatDate(termo?.DataCriacao)}</td>
-                                        <td style={{ padding: "14px 18px", fontSize: "14px", display: "flex", gap: "8px" }}>
+                                        {/* <td style={{ padding: "14px 18px", fontSize: "14px", display: "flex", gap: "8px" }}>
                                             <button
                                                 style={{
                                                     border: "none",
@@ -140,7 +140,7 @@ function TermosDeUso() {
                                             >
                                                 Editar
                                             </button>
-                                        </td>
+                                        </td> */}
                                     </tr>
                                 ))}
                             </tbody>
