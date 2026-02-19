@@ -10,6 +10,8 @@ import { MascaraCnpj } from "../../../utils/MascaraCnpj";
 import { TirarMascara } from "../../../utils/TirarMascara";
 import { MascaraValor } from "../../../utils/MascaraValor";
 import { MascaraCep } from "../../../utils/MascaraCep";
+import { FormatarData } from "../../../utils/FormatarData";
+import ModalImage from "./ModalImage";
 
 
 const estados = [
@@ -21,6 +23,15 @@ const estados = [
 function PerfilUsuario(props) {
     const { idUsuario } = useParams();
 
+    const [showFichaCadastral, setShowFichaCadastral] = useState(false);
+    const [showFichaDocumentos, setShowFichaDocumentos] = useState(false);
+
+    const [motivoRejeicaoRgCnh, setMotivoRejeicaoRgCnh] = useState("");
+    const [motivoRejeicaoComprovanteEndereco, setMotivoRejeicaoComprovanteEndereco] = useState("");
+    const [motivoRejeicaoTituloEleitor, setMotivoRejeicaoTituloEleitor] = useState("");
+
+    const [fichaCadastral, setFichaCadastral] = useState({});
+    const [fichaDocumentos, setFichaDocumentos] = useState({});
     const [userInfo, setUserInfo] = useState({});
     const [certificado, setCertificado] = useState({});
     const [servicos, setServicos] = useState([]);
@@ -51,6 +62,21 @@ function PerfilUsuario(props) {
     const [bairroEmpresa, setBairroEmpresa] = useState('');
     const [emailEmpresa, setEmailEmpresa] = useState('');
     const [telefoneEmpresa, setTelefoneEmpresa] = useState('');
+
+    const [modalOpen, setModalOpen] = useState(false); // Estado para controlar o modal
+    const [selectedImage, setSelectedImage] = useState(''); // Estado para armazenar a imagem selecionada
+
+    // Função para abrir o modal e definir a imagem selecionada
+    const openModal = (imageUrl) => {
+        setSelectedImage(imageUrl);
+        setModalOpen(true);
+    };
+
+    // Função para fechar o modal
+    const closeModal = () => {
+        setModalOpen(false);
+        setSelectedImage(''); // Limpar a imagem selecionada
+    };
 
     useEffect(() => {
         const getInfoUsuario = async () => {
@@ -478,6 +504,56 @@ function PerfilUsuario(props) {
         window.open(url, "_blank");
     };
 
+    useEffect(() => {
+        const getFichaCadastral = async () => {
+            const response = await axios.get(`${process.env.REACT_APP_API_URL}/getFichaCadastralADM/${idUsuario}`, {
+                headers: {
+                    Authorization: token
+                }
+            });
+
+            setFichaCadastral(response.data.ficha);
+            const documentos = await axios.get(`${process.env.REACT_APP_API_URL}/getDocumentosUsuarioADM/${idUsuario}`, {
+                headers: {
+                    Authorization: token
+                }
+            });
+            console.log(documentos.data.documentos);
+            setFichaDocumentos(documentos.data.documentos);
+        }
+
+        getFichaCadastral();
+    }, [idUsuario, token]);
+
+
+    const handleRejeitarDoc = async (tipoDoc) => {
+        const response = await axios.post(`${process.env.REACT_APP_API_URL}/rejeitarDocumentoADM/${tipoDoc}`, {
+            idUsuario: Number(idUsuario),
+            motivoRejeicao: tipoDoc === "rgCnh" ? motivoRejeicaoRgCnh : tipoDoc === "comprovanteEndereco" ? motivoRejeicaoComprovanteEndereco : motivoRejeicaoTituloEleitor
+        }, {
+            headers: {
+                Authorization: token
+            }
+        });
+        console.log(response.data);
+        setFichaDocumentos(response.data.documentos);
+
+    }
+
+    const handleAceitarDoc = async (tipoDoc) => {
+        const response = await axios.post(`${process.env.REACT_APP_API_URL}/aceitarDocumentoADM/${tipoDoc}`, {
+            idUsuario: Number(idUsuario),
+            motivoRejeicao: tipoDoc === "rgCnh" ? motivoRejeicaoRgCnh : tipoDoc === "comprovanteEndereco" ? motivoRejeicaoComprovanteEndereco : motivoRejeicaoTituloEleitor
+        }, {
+            headers: {
+                Authorization: token
+            }
+        });
+        console.log(response.data);
+        setFichaDocumentos(response.data.documentos);
+
+    }
+
 
     return (
         <div>
@@ -496,7 +572,7 @@ function PerfilUsuario(props) {
                         </Breadcrumbs>
                     </div>
                     <div>
-                        <h2>Perfil do Usuário {idUsuario}</h2>
+                        <h2>Perfil do Usuário {userInfo?.Nome || ""}</h2>
                     </div>
                     <div>
                         <h3>Dados do Usuário</h3>
@@ -554,6 +630,287 @@ function PerfilUsuario(props) {
                                     </Button>
                                 </div>
                             </Card>
+
+                            <Card style={{ width: "100%", borderRadius: "5px", backgroundColor: "#f7f7f7ff" }}>
+                                <div style={{ padding: "15px", width: "100%", borderRadius: "5px", backgroundColor: "#f7f7f7ff", cursor: "pointer" }} onClick={() => {
+                                    if (showFichaCadastral) {
+                                        setShowFichaCadastral(false)
+                                    } else {
+                                        setShowFichaCadastral(true)
+                                    }
+                                }}>
+                                    <h2>Ficha Cadastral</h2>
+                                    <p>{fichaCadastral?.ficha?.progress === 100 ? <p style={{ color: "green" }}>Usuário preencheu todos os campos obrigatórios</p> : <p style={{ color: "red" }}>Usuário não preencheu todos os campos obrigatórios</p>}</p>
+                                </div>
+                                <Divider />
+                                <div style={{ padding: "15px", display: showFichaCadastral ? "block" : "none", transition: "all 0.3s ease-in-out" }}>
+                                    <div style={{ width: "100%", display: "flex", justifyContent: "space-between", gap: "15px" }}>
+                                        <TextField label="Data nascimento" sx={{ width: "48%" }} variant="standard" value={FormatarData(fichaCadastral?.ficha?.dataNascimento) || ''} />
+                                        <TextField label="RG" sx={{ width: "48%" }} variant="standard" value={fichaCadastral?.ficha?.rg || ''} />
+                                    </div>
+                                    <div style={{ width: "100%", display: "flex", justifyContent: "space-between", gap: "15px", marginTop: "15px" }}>
+                                        <TextField label="Orgão RG" sx={{ width: "48%" }} variant="standard" value={fichaCadastral?.ficha?.orgaoRg || ''} />
+                                        <TextField label="Título Eleitor" sx={{ width: "48%" }} variant="standard" value={fichaCadastral?.ficha?.tituloEleitor || ''} />
+                                    </div>
+                                    <div style={{ width: "100%", display: "flex", justifyContent: "space-between", gap: "15px", marginTop: "15px" }}>
+                                        <TextField label="PIS/NIS/NIT" sx={{ width: "48%" }} variant="standard" value={fichaCadastral?.ficha?.pisNisNit || ''} />
+                                        <TextField label="CNH" sx={{ width: "48%" }} variant="standard" value={fichaCadastral?.ficha?.cnh || ''} />
+                                    </div>
+                                    <div style={{ width: "100%", display: "flex", justifyContent: "space-between", gap: "15px", marginTop: "15px" }}>
+                                        <TextField label="Estado emissão CNH" sx={{ width: "48%" }} variant="standard" value={fichaCadastral?.ficha?.estadoEmissaoCnh || ''} />
+                                        <TextField label="Naturalidade" sx={{ width: "48%" }} variant="standard" value={fichaCadastral?.ficha?.naturalidade || ''} />
+                                    </div>
+                                    <div style={{ width: "100%", display: "flex", justifyContent: "space-between", gap: "15px", marginTop: "15px" }}>
+                                        <TextField label="Endereço" sx={{ width: "100%" }} variant="standard" value={`${fichaCadastral?.endereco?.Endereco}, ${fichaCadastral?.endereco?.Numero} - ${fichaCadastral?.endereco?.Cidade}, ${fichaCadastral?.endereco?.Estado}, ${fichaCadastral?.endereco?.Cep} ${fichaCadastral?.endereco?.Complemento}` || ''} />
+                                    </div>
+                                    <div style={{ width: "100%", display: "flex", justifyContent: "space-between", gap: "15px", marginTop: "15px" }}>
+                                        <TextField label="Estado Civil" sx={{ width: "33%" }} variant="standard" value={fichaCadastral?.ficha?.estadoCivil || ''} />
+                                        <TextField label="Regime de bens" sx={{ width: "33%" }} variant="standard" value={fichaCadastral?.ficha?.regimeBens || ''} />
+                                        <TextField label="CPF Conjuge" sx={{ width: "33%" }} variant="standard" value={fichaCadastral?.ficha?.cpfConjugue || ''} />
+                                    </div>
+                                    <div style={{ width: "100%", display: "flex", justifyContent: "space-between", gap: "15px", marginTop: "15px" }}>
+                                        <TextField label="CNPJ" sx={{ width: "48%" }} variant="standard" value={fichaCadastral?.ficha?.cnpj || ''} />
+                                        <TextField label="Senha Gov" sx={{ width: "48%" }} variant="standard" value={fichaCadastral?.ficha?.senhaGov || ''} />
+                                    </div>
+                                    <div style={{ width: "100%", display: "flex", justifyContent: "space-between", gap: "15px", marginTop: "15px" }}>
+                                        <TextField label="Endereço fiscal" sx={{ width: "100%" }} variant="standard" value={fichaCadastral?.ficha?.enderecoFiscal || ''} />
+                                    </div>
+                                    <div style={{ width: "100%", display: "flex", justifyContent: "space-between", gap: "15px", marginTop: "15px" }}>
+                                        <TextField label="Razão Social" sx={{ width: "100%" }} variant="standard" value={fichaCadastral?.ficha?.razaoSocial || ''} />
+                                    </div>
+                                    <div style={{ width: "100%", display: "flex", justifyContent: "space-between", gap: "15px", marginTop: "15px" }}>
+                                        <TextField label="Nome Fantasia" sx={{ width: "100%" }} variant="standard" value={fichaCadastral?.ficha?.nomeFantasia || ''} />
+                                    </div>
+                                </div>
+                            </Card >
+
+                            <Card style={{ width: "100%", borderRadius: "5px", backgroundColor: "#f7f7f7ff" }}>
+                                <div style={{ padding: "15px", width: "100%", borderRadius: "5px", backgroundColor: "#f7f7f7ff", cursor: "pointer" }} onClick={() => {
+                                    if (showFichaDocumentos) {
+                                        setShowFichaDocumentos(false)
+                                    } else {
+                                        setShowFichaDocumentos(true)
+                                    }
+                                }}>
+                                    <h2>Ficha de Documentos</h2>
+                                    {/* <p>{fichaCadastral?.ficha?.progress === 100 ? <p style={{color: "green"}}>Usuário preencheu todos os campos obrigatórios</p> : <p style={{color: "red"}}>Usuário não preencheu todos os campos obrigatórios</p>}</p> */}
+                                </div>
+                                <Divider />
+                                <div style={{ padding: "15px", display: showFichaDocumentos ? "block" : "none", transition: "all 0.3s ease-in-out" }}>
+                                    <div style={{ width: "100%", height: "fit-content", padding: "20px", borderRadius: "8px", border: "1px solid #e0e0e0", backgroundColor: "#f9f9f9", boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" }}>
+                                        <div style={{ marginBottom: "15px" }}>
+                                            <h3 style={{ fontWeight: "600", color: "#333" }}>RG ou CNH</h3>
+                                        </div>
+                                        <Divider style={{ marginBottom: "15px" }} />
+                                        {fichaDocumentos?.rgCnhStatus === "Em Análise" || fichaDocumentos?.rgCnhStatus === "Aprovado" ? (
+                                            <div style={{ width: "100%", display: "flex", justifyContent: "center", gap: "20px", marginTop: "20px" }}>
+                                                <img
+                                                    src={fichaDocumentos?.rgCnhFileName}
+                                                    alt="RG ou CNH"
+                                                    style={{
+                                                        width: "48%",
+                                                        maxHeight: "300px",
+                                                        objectFit: "contain",
+                                                        borderRadius: "8px",
+                                                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
+                                                    }}
+                                                    onClick={() => openModal(fichaDocumentos?.rgCnhFileName)}
+                                                />
+                                                <div style={{ width: "50%", display: fichaDocumentos?.rgCnhStatus === "Aprovado" ? "none" : "block" }}>
+                                                    <TextField
+                                                        fullWidth
+                                                        id="outlined-multiline-static"
+                                                        label="Motivo da reprovação"
+                                                        multiline
+                                                        rows={4}
+                                                        defaultValue="O documento foi reprovado por: ..."
+                                                        variant="outlined"
+                                                        style={{ marginBottom: "20px", borderRadius: "8px" }}
+                                                        value={motivoRejeicaoRgCnh}
+                                                        onChange={(e) => setMotivoRejeicaoRgCnh(e.target.value)}
+                                                    />
+                                                    <div style={{ display: "flex", justifyContent: "space-between", gap: "15px" }}>
+                                                        <Button
+                                                            variant="contained"
+                                                            size="small"
+                                                            sx={{
+                                                                backgroundColor: "red",
+                                                                '&:hover': { backgroundColor: "#e57373" },
+                                                                borderRadius: "6px",
+                                                                padding: "6px 12px"
+                                                            }}
+                                                            onClick={() => handleRejeitarDoc("rgCnh")}
+                                                        >
+                                                            Reprovar Documento
+                                                        </Button>
+                                                        <Button
+                                                            variant="contained"
+                                                            size="small"
+                                                            sx={{
+                                                                backgroundColor: "green",
+                                                                '&:hover': { backgroundColor: "#81c784" },
+                                                                borderRadius: "6px",
+                                                                padding: "6px 12px"
+                                                            }}
+                                                            onClick={() => handleAceitarDoc("rgCnh")}
+
+                                                        >
+                                                            Aceitar Documento
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <p>Usuário não enviou o documento.</p>
+                                        )}
+                                    </div>
+
+
+
+                                    <div style={{ width: "100%", height: "fit-content", marginTop: "20px", padding: "20px", borderRadius: "8px", border: "1px solid #e0e0e0", backgroundColor: "#f9f9f9", boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" }}>
+                                        <div style={{ marginBottom: "15px" }}>
+                                            <h3 style={{ fontWeight: "600", color: "#333" }}>Titulo de Eleitor</h3>
+                                        </div>
+                                        <Divider style={{ marginBottom: "15px" }} />
+                                        {fichaDocumentos?.tituloEleitorStatus === "Em Análise" || fichaDocumentos?.tituloEleitorStatus === "Aprovado" ? (
+                                            <div style={{ width: "100%", display: "flex", justifyContent: "center", gap: "20px", marginTop: "20px" }}>
+                                                <img
+                                                    src={fichaDocumentos?.tituloEleitorFileName}
+                                                    alt="Titulo de Eleitor"
+                                                    style={{
+                                                        width: "48%",
+                                                        maxHeight: "300px",
+                                                        objectFit: "contain",
+                                                        borderRadius: "8px",
+                                                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
+                                                    }}
+                                                    onClick={() => openModal(fichaDocumentos?.tituloEleitorFileName)}
+
+                                                />
+                                                <div style={{ width: "50%",display: fichaDocumentos?.tituloEleitorStatus === "Aprovado" ? "none" : "block" }}>
+                                                    <TextField
+                                                        fullWidth
+                                                        id="outlined-multiline-static"
+                                                        label="Motivo da reprovação"
+                                                        multiline
+                                                        rows={4}
+                                                        defaultValue="O documento foi reprovado por: ..."
+                                                        variant="outlined"
+                                                        style={{ marginBottom: "20px", borderRadius: "8px" }}
+                                                        value={motivoRejeicaoTituloEleitor}
+                                                        onChange={(e) => setMotivoRejeicaoTituloEleitor(e.target.value)}
+                                                    />
+                                                    <div style={{ display: "flex", justifyContent: "space-between", gap: "15px" }}>
+                                                        <Button
+                                                            variant="contained"
+                                                            size="small"
+                                                            sx={{
+                                                                backgroundColor: "red",
+                                                                '&:hover': { backgroundColor: "#e57373" },
+                                                                borderRadius: "6px",
+                                                                padding: "6px 12px"
+                                                            }}
+                                                            onClick={() => handleRejeitarDoc("tituloEleitor")}
+                                                        >
+                                                            Reprovar Documento
+                                                        </Button>
+                                                        <Button
+                                                            variant="contained"
+                                                            size="small"
+                                                            sx={{
+                                                                backgroundColor: "green",
+                                                                '&:hover': { backgroundColor: "#81c784" },
+                                                                borderRadius: "6px",
+                                                                padding: "6px 12px"
+                                                            }}
+                                                            onClick={() => handleAceitarDoc("tituloEleitor")}
+
+                                                        >
+                                                            Aceitar Documento
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <p>Usuário não enviou o documento.</p>
+                                        )}
+                                    </div>
+
+
+
+
+                                    <div style={{ width: "100%", height: "fit-content", marginTop: "20px", padding: "20px", borderRadius: "8px", border: "1px solid #e0e0e0", backgroundColor: "#f9f9f9", boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)" }}>
+                                        <div style={{ marginBottom: "15px" }}>
+                                            <h3 style={{ fontWeight: "600", color: "#333" }}>Comprovante de Residência</h3>
+                                        </div>
+                                        <Divider style={{ marginBottom: "15px" }} />
+                                        {fichaDocumentos?.comprovanteResidenciaStatus === "Em Análise" || fichaDocumentos?.comprovanteResidenciaStatus === "Aprovado" ? (
+                                            <div style={{ width: "100%", display: "flex", justifyContent: "center", gap: "20px", marginTop: "20px" }}>
+                                                <img
+                                                    src={fichaDocumentos?.comprovanteResidenciaFileName}
+                                                    alt="Comprovante de Residência"
+                                                    style={{
+                                                        width: "48%",
+                                                        maxHeight: "300px",
+                                                        objectFit: "contain",
+                                                        borderRadius: "8px",
+                                                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
+                                                    }}
+                                                    onClick={() => openModal(fichaDocumentos?.comprovanteResidenciaFileName)}
+
+                                                />
+                                                <div style={{ width: "50%", display: fichaDocumentos?.comprovanteResidenciaStatus === "Aprovado" ? "none" : "block" }}>
+                                                    <TextField
+                                                        fullWidth
+                                                        id="outlined-multiline-static"
+                                                        label="Motivo da reprovação"
+                                                        multiline
+                                                        rows={4}
+                                                        defaultValue="O documento foi reprovado por: ..."
+                                                        variant="outlined"
+                                                        style={{ marginBottom: "20px", borderRadius: "8px" }}
+                                                        value={motivoRejeicaoComprovanteEndereco}
+                                                        onChange={(e) => setMotivoRejeicaoComprovanteEndereco(e.target.value)}
+                                                    />
+                                                    <div style={{ display: "flex", justifyContent: "space-between", gap: "15px" }}>
+                                                        <Button
+                                                            variant="contained"
+                                                            size="small"
+                                                            sx={{
+                                                                backgroundColor: "red",
+                                                                '&:hover': { backgroundColor: "#e57373" },
+                                                                borderRadius: "6px",
+                                                                padding: "6px 12px"
+                                                            }}
+                                                            onClick={() => handleRejeitarDoc("comprovanteResidencia")}
+                                                        >
+                                                            Reprovar Documento
+                                                        </Button>
+                                                        <Button
+                                                            variant="contained"
+                                                            size="small"
+                                                            sx={{
+                                                                backgroundColor: "green",
+                                                                '&:hover': { backgroundColor: "#81c784" },
+                                                                borderRadius: "6px",
+                                                                padding: "6px 12px"
+                                                            }}
+                                                            onClick={() => handleAceitarDoc("comprovanteResidencia")}
+
+                                                        >
+                                                            Aceitar Documento
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <p>Usuário não enviou o documento.</p>
+                                        )}
+                                    </div>
+
+
+                                </div>
+                            </Card >
 
                             <Card style={{ width: "100%", borderRadius: "5px", backgroundColor: "#f7f7f7ff" }}>
                                 <div style={{ padding: "15px" }}>
@@ -860,7 +1217,7 @@ function PerfilUsuario(props) {
                                     </Card>
                                     <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', gap: '16px', marginTop: '16px' }}>
                                         <TextField label="Código" disabled={!certificado} value={codigo} onChange={(e) => setCodigo(e.target.value)} variant="outlined" size='small' sx={{ width: "48%" }} />
-                                        <TextField label="cnae" disabled={!certificado} value={cnae} onChange={(e) => setCnae(e.target.value)} variant="outlined" size='small' sx={{ width: "48%" }} />
+                                        <TextField label="cnae" disabled value={cnae} onChange={(e) => setCnae(e.target.value)} variant="outlined" size='small' sx={{ width: "48%" }} />
 
                                     </div>
                                     <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', gap: '16px', marginTop: '16px' }}>
@@ -1037,6 +1394,11 @@ function PerfilUsuario(props) {
                     </div>
                 </div>
             </div>
+            <ModalImage
+                open={modalOpen}
+                onClose={closeModal}
+                imageUrl={selectedImage}
+            />
         </div>
     );
 }
