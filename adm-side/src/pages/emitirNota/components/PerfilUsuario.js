@@ -693,7 +693,7 @@ function PerfilUsuario(props) {
                                     }
                                 }}>
                                     <h2>Ficha de Documentos</h2>
-                                    {/* <p>{fichaCadastral?.ficha?.progress === 100 ? <p style={{color: "green"}}>Usuário preencheu todos os campos obrigatórios</p> : <p style={{color: "red"}}>Usuário não preencheu todos os campos obrigatórios</p>}</p> */}
+                                    <p>{fichaDocumentos?.rgCnhFileName !== null && fichaDocumentos?.tituloEleitorFileName !== null && fichaDocumentos?.comprovanteResidenciaFileName !== null ? <span style={{color: "green"}}>Usuário enviou todos os documentos</span> : <span style={{color: "red"}}>Usuário não enviou todos os documentos</span>}</p>
                                 </div>
                                 <Divider />
                                 <div style={{ padding: "15px", display: showFichaDocumentos ? "block" : "none", transition: "all 0.3s ease-in-out" }}>
