@@ -73,7 +73,7 @@ function EmitirNota() {
                 <div style={{ width: '90%', marginTop: 20 }}>
                     <div role="presentation">
                         <Breadcrumbs aria-label="breadcrumb">
-                            <Link underline="hover" color="inherit" href="/Dashboard">
+                            <Link underline="hover" color="inherit" onClick={() => navigate("../dashboard")}>
                                 Dashboard
                             </Link>
                             <Typography sx={{ color: 'text.primary' }}>Emitir Nota</Typography>
@@ -83,14 +83,15 @@ function EmitirNota() {
                         <h2>Emitir Nota</h2>
                     </div>
                     <div>
-                        <h3>Lista de Usuarios</h3>
+                        <h3>Lista de Clientes</h3>
                     </div>
                     <div style={{ width: "100%", display: "flex", justifyContent: "center" }}>
                         <Box sx={{ display: 'flex', alignItems: 'flex-end', width: "50%", marginTop: "20px" }}>
                             <ManageSearchIcon sx={{ color: 'action.active', mr: 1, my: 0.5 }} />
-                            <TextField label="Para qual usuário você vai emitir a nota?" variant="standard" size="large" sx={{ width: "100%" }} onChange={(event) => handleSearchUser(event)} />
+                            <TextField label="Para qual cliente você vai emitir a nota?" variant="standard" size="large" sx={{ width: "100%" }} onChange={(event) => handleSearchUser(event)} />
                         </Box>
                     </div>
+                    {/* // tabela para consultar cliente */}
                     <div style={{ width: "100%", overflowX: "auto", marginTop: "20px" }}>
                         <table
                             style={{

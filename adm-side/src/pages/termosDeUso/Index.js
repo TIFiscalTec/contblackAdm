@@ -7,7 +7,6 @@ import Link from '@mui/material/Link';
 import { useNavigate } from "react-router-dom";
 import { FormatDate } from "../../utils/FormatDate";
 import AdicionarTermos from "./components/AdicionarTermos";
-import EditarTermos from "./components/EditarTermos";
 
 function TermosDeUso() {
 
@@ -16,8 +15,6 @@ function TermosDeUso() {
 
     const [termos, setTermos] = useState([]);
     const [adicionarTermos, setAdicionarTermos] = useState(false);
-    const [editarTermos, setEditarTermos] = useState(false);
-    const [idTermo, setIdTermo] = useState(null);
 
     useEffect(() => {
         const getTermos = async () => {
@@ -31,7 +28,7 @@ function TermosDeUso() {
         }
 
         getTermos();
-    }, [token, navigate, adicionarTermos, editarTermos])
+    }, [token, navigate, adicionarTermos])
 
     return (
         <div>
@@ -40,7 +37,7 @@ function TermosDeUso() {
                 <div style={{ width: '90%', marginTop: 20 }}>
                     <div role="presentation">
                         <Breadcrumbs aria-label="breadcrumb">
-                            <Link underline="hover" color="inherit" href="/Dashboard">
+                            <Link underline="hover" color="inherit" onClick={() => navigate("../dashboard")}>
                                 Dashboard
                             </Link>
                             <Typography sx={{ color: 'text.primary' }}>Termos de Uso</Typography>
@@ -149,7 +146,7 @@ function TermosDeUso() {
                 </div>
             </div>
             <AdicionarTermos adicionarTermos={adicionarTermos} setAdicionarTermos={setAdicionarTermos} />
-            <EditarTermos editarTermos={editarTermos} setEditarTermos={setEditarTermos} idTermo={idTermo} />
+            {/* <EditarTermos editarTermos={editarTermos} setEditarTermos={setEditarTermos} idTermo={idTermo} /> */}
         </div>
     );
 }

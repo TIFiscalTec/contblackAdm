@@ -39,10 +39,10 @@ function Admins() {
                 <div style={{ width: '90%', marginTop: 20 }}>
                     <div role="presentation">
                         <Breadcrumbs aria-label="breadcrumb">
-                            <Link underline="hover" color="inherit" href="/Dashboard">
+                            <Link underline="hover" color="inherit" onClick={() => navigate("../dashboard")}>
                                 Dashboard
                             </Link>
-                            <Link underline="hover" color="inherit" href="/Usuarios">
+                            <Link underline="hover" color="inherit" onClick={() => navigate("../usuarios")}>
                                 Usuarios
                             </Link>
                             <Typography sx={{ color: 'text.primary' }}>Admins</Typography>

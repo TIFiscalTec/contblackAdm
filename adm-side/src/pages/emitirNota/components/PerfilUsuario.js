@@ -1,17 +1,19 @@
 import Header from "../../components/Header";
 import { MascaraCpf } from "../../../utils/MascaraCpf";
 import { MascaraTelefone } from "../../../utils/MascaraTelefone";
-import React, { useState, useEffect, useRef, use } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { Typography, Breadcrumbs, Link, Button, Card, Divider, TextField, Autocomplete, MenuItem, Select, Checkbox, FormControlLabel, InputAdornment, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Box, FormControl, InputLabel, OutlinedInput, FormHelperText, } from "@mui/material";
 import { Visibility, VisibilityOff, Email as EmailIcon, VerifiedUser as VerifiedUserIcon, } from "@mui/icons-material";
 import { MascaraCnpj } from "../../../utils/MascaraCnpj";
 import { TirarMascara } from "../../../utils/TirarMascara";
-import { MascaraValor } from "../../../utils/MascaraValor";
 import { MascaraCep } from "../../../utils/MascaraCep";
 import { FormatarData } from "../../../utils/FormatarData";
 import ModalImage from "./ModalImage";
+import { NumericFormat } from 'react-number-format';
+import { useNavigate } from "react-router-dom";
+import DeleteIcon from '@mui/icons-material/Delete';
 
 
 const estados = [
@@ -21,6 +23,7 @@ const estados = [
 ];
 
 function PerfilUsuario(props) {
+    const navigate = useNavigate();
     const { idUsuario } = useParams();
 
     const [showFichaCadastral, setShowFichaCadastral] = useState(false);
@@ -127,11 +130,11 @@ function PerfilUsuario(props) {
     const [senha, setSenha] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [codigo, setCodigo] = useState("");
-    const [codigoTributacao, setCodigoTributacao] = useState("");
+    // const [codigoTributacao, setCodigoTributacao] = useState("");
     const [discriminacao, setDiscriminacao] = useState("");
     const [cnae, setCnae] = useState("");
-    const [tipoTributacao, setTipoTributacao] = useState("");
-    const [exigibilidade, setExigibilidade] = useState("");
+    const [tipoTributacao, setTipoTributacao] = useState(6);
+    const [exigibilidade, setExigibilidade] = useState(1);
     const [aliquota, setAliquota] = useState("");
     const fileInputRef = useRef(null);
 
@@ -247,17 +250,21 @@ function PerfilUsuario(props) {
     const [valorServico, setValorServico] = useState('0');
     const [descontoCondicionado, setDescontoCondicionado] = useState('0');
     const [descontoIncondicionado, setDescontoIncondicionado] = useState('0');
+    const [regimeApuracaoTributaria, setRegimeApuracaoTributaria] = useState('');
 
     const handleEmitirNota = async () => {
         console.log(servicoSelecionado)
         console.log(Number((Number(valorServico.replace(/\./g, '').replace(',', '.')) * 10).toFixed(2)));
-        let body = { hasTomador, idUsuario: Number(idUsuario) }
+
+        const formatarValor = (valor) => {
+            return Number(valor.replace("R$ ", "").replace(/\./g, "").replace(",", "."));
+        };
 
         if (!servicoSelecionado) {
             alert('Por favor, selecione um serviço.');
             return;
         }
-        if (!valorServico || Number(valorServico.replace(/\./g, '').replace(',', '.')) <= 0) {
+        if (!valorServico || formatarValor(valorServico) <= 0) {
             alert('Por favor, informe um valor de serviço válido.');
             return;
         }
@@ -266,40 +273,31 @@ function PerfilUsuario(props) {
                 alert('Por favor, preencha todos os dados do tomador.');
                 return;
             }
-            body = {
-                cpfCnpjTomador: TirarMascara(cpfCnpjTomador),
-                razaoSocialTomador,
-                emailTomador,
-                inscricaoMunicipalTomador,
-                cepTomador,
-                enderecoTomador,
-                numeroTomador,
-                estadoTomador,
-                cidadeTomador,
-                bairroTomador,
-                servicoSelecionado,
-                tipoTributacao,
-                exigibilidade,
-                aliquota: aliquota ? parseFloat(String(aliquota).replace(",", ".")) : 0,
-                valorServico: Number((Number(valorServico.replace(/\./g, '').replace(',', '.')) * 10).toFixed(2)),
-                descontoCondicionado: Number((Number(descontoCondicionado.replace(/\./g, '').replace(',', '.')) * 10).toFixed(2)),
-                descontoIncondicionado: Number((Number(descontoIncondicionado.replace(/\./g, '').replace(',', '.')) * 10).toFixed(2)),
-                hasTomador,
-                idUsuario: Number(idUsuario)
-            }
-        } else {
-            body = {
-                servicoSelecionado,
-                tipoTributacao,
-                exigibilidade,
-                aliquota: aliquota ? parseFloat(String(aliquota).replace(",", ".")) : 0,
-                valorServico: Number((Number(valorServico.replace(/\./g, '').replace(',', '.')) * 10).toFixed(2)),
-                descontoCondicionado: Number((Number(descontoCondicionado.replace(/\./g, '').replace(',', '.')) * 10).toFixed(2)),
-                descontoIncondicionado: Number((Number(descontoIncondicionado.replace(/\./g, '').replace(',', '.')) * 10).toFixed(2)),
-                hasTomador,
-                idUsuario: Number(idUsuario)
-            }
         }
+
+        const body = {
+            idUsuario: Number(idUsuario),
+            cpfCnpjTomador: hasTomador ? TirarMascara(cpfCnpjTomador) : undefined,
+            razaoSocialTomador: hasTomador ? razaoSocialTomador : undefined,
+            emailTomador,
+            inscricaoMunicipalTomador,
+            cepTomador,
+            enderecoTomador,
+            numeroTomador,
+            estadoTomador,
+            regimeApuracaoTributaria,
+            cidadeTomador,
+            bairroTomador,
+            servicoSelecionado,
+            tipoTributacao,
+            exigibilidade,
+            aliquota: aliquota ? parseFloat(String(aliquota).replace(',', '.')) : 0,
+            valorServico: formatarValor(valorServico),
+            descontoCondicionado: formatarValor(descontoCondicionado),
+            descontoIncondicionado: formatarValor(descontoIncondicionado),
+            hasTomador
+        };
+
         setNotaLoading(true);
         const response = await axios.post(`${process.env.REACT_APP_API_URL}/emitirNotaServicoADM`, body, {
             headers: {
@@ -551,9 +549,37 @@ function PerfilUsuario(props) {
         });
         console.log(response.data);
         setFichaDocumentos(response.data.documentos);
-
     }
 
+    const handleDeleteService = async (servico) => {
+        console.log(servico);
+        try {
+            setServicoLoading(true);
+            await axios.delete(
+                `${process.env.REACT_APP_API_URL}/deletarServicoADM`,
+                {
+                    headers: {
+                        authorization: token,
+                    },
+                    data: {
+                        idServico: servico.idServico,
+                    },
+                }
+            ).then((response) => {
+                if (response.data.status === 200) {
+                } else {
+                    console.error("Erro ao deletar serviço:", response.data);
+                    alert("Falha ao deletar serviço. Tente novamente.");
+                }
+            })
+
+        } catch (err) {
+            console.error(err);
+            alert("Erro ao deletar serviço. Tente novamente mais tarde.");
+        } finally {
+            setServicoLoading(false);
+        }
+    }
 
     return (
         <div>
@@ -562,10 +588,10 @@ function PerfilUsuario(props) {
                 <div style={{ width: '90%', marginTop: 20 }}>
                     <div role="presentation">
                         <Breadcrumbs aria-label="breadcrumb">
-                            <Link underline="hover" color="inherit" href="/Dashboard">
+                            <Link underline="hover" color="inherit" onClick={() => navigate("../dashboard")}>
                                 Dashboard
                             </Link>
-                            <Link underline="hover" color="inherit" href="/EmitirNota">
+                            <Link underline="hover" color="inherit" onClick={() => navigate("../emitirNota")}>
                                 Emitir Nota
                             </Link>
                             <Typography sx={{ color: 'text.primary' }}>Perfil Usuário</Typography>
@@ -693,7 +719,7 @@ function PerfilUsuario(props) {
                                     }
                                 }}>
                                     <h2>Ficha de Documentos</h2>
-                                    <p>{fichaDocumentos?.rgCnhFileName !== null && fichaDocumentos?.tituloEleitorFileName !== null && fichaDocumentos?.comprovanteResidenciaFileName !== null ? <span style={{color: "green"}}>Usuário enviou todos os documentos</span> : <span style={{color: "red"}}>Usuário não enviou todos os documentos</span>}</p>
+                                    <p>{fichaDocumentos?.rgCnhFileName !== null && fichaDocumentos?.tituloEleitorFileName !== null && fichaDocumentos?.comprovanteResidenciaFileName !== null ? <span style={{ color: "green" }}>Usuário enviou todos os documentos</span> : <span style={{ color: "red" }}>Usuário não enviou todos os documentos</span>}</p>
                                 </div>
                                 <Divider />
                                 <div style={{ padding: "15px", display: showFichaDocumentos ? "block" : "none", transition: "all 0.3s ease-in-out" }}>
@@ -704,18 +730,32 @@ function PerfilUsuario(props) {
                                         <Divider style={{ marginBottom: "15px" }} />
                                         {fichaDocumentos?.rgCnhStatus === "Em Análise" || fichaDocumentos?.rgCnhStatus === "Aprovado" ? (
                                             <div style={{ width: "100%", display: "flex", justifyContent: "center", gap: "20px", marginTop: "20px" }}>
-                                                <img
-                                                    src={fichaDocumentos?.rgCnhFileName}
-                                                    alt="RG ou CNH"
-                                                    style={{
-                                                        width: "48%",
-                                                        maxHeight: "300px",
-                                                        objectFit: "contain",
-                                                        borderRadius: "8px",
-                                                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
-                                                    }}
-                                                    onClick={() => openModal(fichaDocumentos?.rgCnhFileName)}
-                                                />
+                                                {/* cnh pode ser imagem ou pdf */}
+                                                {fichaDocumentos?.rgCnhFileName?.endsWith(".pdf") ? (
+                                                    <iframe
+                                                        src={fichaDocumentos?.rgCnhFileName}
+                                                        title="RG ou CNH"
+                                                        style={{
+                                                            width: "48%",
+                                                            height: "300px",
+                                                            borderRadius: "8px",
+                                                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <img
+                                                        src={fichaDocumentos?.rgCnhFileName}
+                                                        alt="RG ou CNH"
+                                                        style={{
+                                                            width: "48%",
+                                                            maxHeight: "300px",
+                                                            objectFit: "contain",
+                                                            borderRadius: "8px",
+                                                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
+                                                        }}
+                                                        onClick={() => openModal(fichaDocumentos?.rgCnhFileName)}
+                                                    />
+                                                )}
                                                 <div style={{ width: "50%", display: fichaDocumentos?.rgCnhStatus === "Aprovado" ? "none" : "block" }}>
                                                     <TextField
                                                         fullWidth
@@ -787,7 +827,7 @@ function PerfilUsuario(props) {
                                                     onClick={() => openModal(fichaDocumentos?.tituloEleitorFileName)}
 
                                                 />
-                                                <div style={{ width: "50%",display: fichaDocumentos?.tituloEleitorStatus === "Aprovado" ? "none" : "block" }}>
+                                                <div style={{ width: "50%", display: fichaDocumentos?.tituloEleitorStatus === "Aprovado" ? "none" : "block" }}>
                                                     <TextField
                                                         fullWidth
                                                         id="outlined-multiline-static"
@@ -846,19 +886,31 @@ function PerfilUsuario(props) {
                                         <Divider style={{ marginBottom: "15px" }} />
                                         {fichaDocumentos?.comprovanteResidenciaStatus === "Em Análise" || fichaDocumentos?.comprovanteResidenciaStatus === "Aprovado" ? (
                                             <div style={{ width: "100%", display: "flex", justifyContent: "center", gap: "20px", marginTop: "20px" }}>
-                                                <img
-                                                    src={fichaDocumentos?.comprovanteResidenciaFileName}
-                                                    alt="Comprovante de Residência"
-                                                    style={{
-                                                        width: "48%",
-                                                        maxHeight: "300px",
-                                                        objectFit: "contain",
-                                                        borderRadius: "8px",
-                                                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
-                                                    }}
-                                                    onClick={() => openModal(fichaDocumentos?.comprovanteResidenciaFileName)}
-
-                                                />
+                                                {fichaDocumentos?.comprovanteResidenciaFileName?.endsWith(".pdf") ? (
+                                                    <iframe
+                                                        src={fichaDocumentos?.comprovanteResidenciaFileName}
+                                                        title="RG ou CNH"
+                                                        style={{
+                                                            width: "48%",
+                                                            height: "300px",
+                                                            borderRadius: "8px",
+                                                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <img
+                                                        src={fichaDocumentos?.comprovanteResidenciaFileName}
+                                                        alt="RG ou CNH"
+                                                        style={{
+                                                            width: "48%",
+                                                            maxHeight: "300px",
+                                                            objectFit: "contain",
+                                                            borderRadius: "8px",
+                                                            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
+                                                        }}
+                                                        onClick={() => openModal(fichaDocumentos?.comprovanteResidenciaFileName)}
+                                                    />
+                                                )}
                                                 <div style={{ width: "50%", display: fichaDocumentos?.comprovanteResidenciaStatus === "Aprovado" ? "none" : "block" }}>
                                                     <TextField
                                                         fullWidth
@@ -940,10 +992,10 @@ function PerfilUsuario(props) {
                                 <div style={{ padding: "15px" }}>
                                     <Typography variant="body1" sx={{ mb: 2 }}>
                                         {certificado ? (
-                                            "Você possui um certificado digital ativo. Para atualizá-lo, envie um novo arquivo abaixo."
+                                            "Cliente possui um certificado digital ativo. Para atualizá-lo, envie um novo arquivo abaixo."
                                         ) : (
                                             <span style={{ color: "#f44336" }}>
-                                                Você não possui um certificado digital ativo. Por favor, envie seu certificado.
+                                                Cliente não possui um certificado digital ativo. Por favor, envie seu certificado.
                                             </span>
                                         )}
                                     </Typography>
@@ -1189,7 +1241,6 @@ function PerfilUsuario(props) {
                                                         <TableCell><strong>ID</strong></TableCell>
                                                         <TableCell><strong>Código</strong></TableCell>
                                                         <TableCell><strong>Discriminação</strong></TableCell>
-                                                        <TableCell><strong>CNAE</strong></TableCell>
                                                         <TableCell><strong>Ação</strong></TableCell>
                                                     </TableRow>
                                                 </TableHead>
@@ -1200,8 +1251,11 @@ function PerfilUsuario(props) {
                                                                 <TableCell>{servico.idServico}</TableCell>
                                                                 <TableCell>{servico.codigo}</TableCell>
                                                                 <TableCell> {servico.discriminacao}</TableCell>
-                                                                <TableCell>{servico.cnae}</TableCell>
-                                                                <TableCell>Editar</TableCell>
+                                                                <TableCell>
+                                                                    <IconButton onClick={() => handleDeleteService(servico)}>
+                                                                        <DeleteIcon sx={{ color: "red" }} />
+                                                                    </IconButton>
+                                                                </TableCell>
                                                             </TableRow>
                                                         ))
                                                     ) : (
@@ -1220,6 +1274,7 @@ function PerfilUsuario(props) {
                                         <TextField label="cnae" disabled value={cnae} onChange={(e) => setCnae(e.target.value)} variant="outlined" size='small' sx={{ width: "48%" }} />
 
                                     </div>
+
                                     <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', gap: '16px', marginTop: '16px' }}>
                                         <TextField
                                             disabled={!certificado}
@@ -1255,6 +1310,22 @@ function PerfilUsuario(props) {
                                             <TextField size='small' label="CPF ou CNPJ" disabled required variant="outlined" value={MascaraCnpj(cnpjEmpresa)} style={{ width: '49%' }} />
                                             <TextField size='small' label="Razão Social" disabled required variant="outlined" value={razaoSocialEmpresa} style={{ width: '49%' }} />
                                         </div>
+                                    </div>
+                                    <div style={{ width: "100%", marginTop: "10px", display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+                                        <FormControl style={{ width: '100%' }} size='small'>
+                                            <InputLabel id="estado-select-label">Regime de Apuração dos Tributos no Simples Nacional</InputLabel>
+                                            <Select
+                                                labelId="estado-select-label"
+                                                id="estado-select"
+                                                value={regimeApuracaoTributaria}
+                                                label="Regime de Apuração dos Tributos no Simples Nacional"
+                                                onChange={(e) => setRegimeApuracaoTributaria(e.target.value)}
+                                            >
+                                                <MenuItem key={1} value={1}>Regime de apuração dos tributos federais e municipal pelo SN</MenuItem>
+                                                <MenuItem key={2} value={2}>Regime de apuração dos tributos federais pelo SN e ISSQN por fora do SN conforme respectiva legislação municipal do tributo</MenuItem>
+                                                <MenuItem key={3} value={3}>Regime de apuração dos tributos federais e municipal por fora do SN conforme respectivas legilações federal e municipal de cada tributo</MenuItem>
+                                            </Select>
+                                        </FormControl>
                                     </div>
                                     <div style={{ marginTop: "20px" }}>
                                         <h3>Tomador</h3>
@@ -1349,15 +1420,15 @@ function PerfilUsuario(props) {
                                                         label="Tipo tributação"
                                                         onChange={e => setTipoTributacao(e.target.value)}
                                                     >
-                                                        <MenuItem value={0}>Não definido</MenuItem>
+                                                        {/* <MenuItem value={0}>Não definido</MenuItem> */}
                                                         <MenuItem value={1}>Isento de ISS</MenuItem>
                                                         <MenuItem value={2}>Imune</MenuItem>
                                                         <MenuItem value={3}>Não Incidência no Município</MenuItem>
                                                         <MenuItem value={4}>Não Tributável</MenuItem>
-                                                        <MenuItem value={5}>Retido</MenuItem>
-                                                        <MenuItem value={6}>Tributável Dentro do Município</MenuItem>
+                                                        {/* <MenuItem value={5}>Retido</MenuItem> */}
+                                                        <MenuItem defaultChecked value={6}>Tributável Dentro do Município</MenuItem>
                                                         <MenuItem value={7}>Tributável Fora do Município</MenuItem>
-                                                        <MenuItem value={8}>Tributável Dentro do Município pelo tomador</MenuItem>
+                                                        {/* <MenuItem value={8}>Tributável Dentro do Município pelo tomador</MenuItem> */}
                                                     </Select>
                                                 </FormControl>
                                                 <FormControl disabled={!servicoSelecionado} style={{ width: '33%' }} size='small'>
@@ -1379,9 +1450,9 @@ function PerfilUsuario(props) {
                                                 <TextField disabled={!servicoSelecionado} size="small" label="Alíquota" value={aliquota} onChange={e => setAliquota(e.target.value)} variant="outlined" style={{ width: '33%' }} />
                                             </div>
                                             <div style={{ marginTop: "30px", display: 'flex', justifyContent: 'space-between' }}>
-                                                <TextField size='small' label="Valor do Serviço" variant="outlined" style={{ width: '33%' }} value={MascaraValor(valorServico)} onChange={e => setValorServico(e.target.value)} />
-                                                <TextField size='small' label="Desconto Condicionado" variant="outlined" style={{ width: '33%' }} value={MascaraValor(descontoCondicionado)} onChange={e => setDescontoCondicionado(e.target.value)} />
-                                                <TextField size='small' label="Desconto Incondicionado" variant="outlined" style={{ width: '33%' }} value={MascaraValor(descontoIncondicionado)} onChange={e => setDescontoIncondicionado(e.target.value)} />
+                                                <NumericFormat customInput={TextField} allowLeadingZeros prefix="R$ " valueIsNumericString decimalSeparator="," decimalScale={2} disabled={!servicoSelecionado} size='small' label="Valor do Serviço" value={valorServico} onChange={e => setValorServico(e.target.value)} variant="outlined" style={{ width: window.innerWidth < 600 ? '100%' : '33%' }} />
+                                                <NumericFormat customInput={TextField} allowLeadingZeros prefix="R$ " valueIsNumericString decimalSeparator="," decimalScale={2} disabled={!servicoSelecionado} size='small' label="Desconto Condicionado" value={descontoCondicionado} onChange={e => setDescontoCondicionado(e.target.value)} variant="outlined" style={{ width: window.innerWidth < 600 ? '100%' : '33%' }} />
+                                                <NumericFormat customInput={TextField} allowLeadingZeros prefix="R$ " valueIsNumericString decimalSeparator="," decimalScale={2} disabled={!servicoSelecionado} size='small' label="Desconto Incondicionado" value={descontoIncondicionado} onChange={e => setDescontoIncondicionado(e.target.value)} variant="outlined" style={{ width: window.innerWidth < 600 ? '100%' : '33%' }} />
                                             </div>
                                         </div>
                                     </div>

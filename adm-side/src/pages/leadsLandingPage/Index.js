@@ -379,7 +379,7 @@ function LeadsLandingPage() {
                 <div style={{ width: '90%', marginTop: 20 }}>
                     <div role="presentation">
                         <Breadcrumbs aria-label="breadcrumb">
-                            <Link underline="hover" color="inherit" href="/Dashboard">
+                            <Link underline="hover" color="inherit" onClick={() => navigate("../dashboard")}>
                                 Dashboard
                             </Link>
                             <Typography sx={{ color: 'text.primary' }}>Leads landing page</Typography>

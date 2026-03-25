@@ -5,8 +5,10 @@ import Typography from '@mui/material/Typography';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
 import Link from '@mui/material/Link';
 import { FormatDate } from "../../utils/FormatDate";
+import { useNavigate } from "react-router-dom";
 
 function Assinaturas() {
+    const navigate = useNavigate();
 
     const token = localStorage.getItem('token');
     const [assinaturas, setAssinaturas] = useState([]);
@@ -31,7 +33,7 @@ function Assinaturas() {
                 <div style={{ width: '90%', marginTop: 20 }}>
                     <div role="presentation">
                         <Breadcrumbs aria-label="breadcrumb">
-                            <Link underline="hover" color="inherit" href="/Dashboard">
+                            <Link underline="hover" color="inherit" onClick={() => navigate("../dashboard")}>
                                 Dashboard
                             </Link>
                             <Typography sx={{ color: 'text.primary' }}>Assinaturas</Typography>

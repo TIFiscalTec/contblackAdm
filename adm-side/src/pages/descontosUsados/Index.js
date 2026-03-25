@@ -7,8 +7,10 @@ import Link from '@mui/material/Link';
 import { FormatDate } from "../../utils/FormatDate";
 import { useParams } from "react-router-dom";
 import { MascaraTelefone } from "../../utils/MascaraTelefone";
+import { useNavigate } from "react-router-dom";
 
 function DescontosUsados() {
+    const navigate = useNavigate();
     const { idDesconto } = useParams();
     console.log(idDesconto);
 
@@ -35,10 +37,10 @@ function DescontosUsados() {
                 <div style={{ width: '90%', marginTop: 20 }}>
                     <div role="presentation">
                         <Breadcrumbs aria-label="breadcrumb">
-                            <Link underline="hover" color="inherit" href="/Dashboard">
+                            <Link underline="hover" color="inherit" onClick={() => navigate("../dashboard")}>
                                 Dashboard
                             </Link>
-                            <Link underline="hover" color="inherit" href="/Descontos">
+                            <Link underline="hover" color="inherit" onClick={() => navigate("../descontos")}>
                                 Descontos
                             </Link>
                             <Typography sx={{ color: 'text.primary' }}>Descontos Usados</Typography>
